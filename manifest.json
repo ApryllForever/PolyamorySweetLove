@@ -1,0 +1,20 @@
+﻿{
+  "Name": "Polyamory Sweet Love",
+  "Author": "ApryllForever",
+  "Version": "1.0.0",
+  "Description": "Love part of the Polyamory Sweet!",
+  "UniqueID": "ApryllForever.PolyamorySweetLove",
+  "EntryDll": "PolyamorySweetLove.dll",
+  "MinimumApiVersion": "3.13.0",
+  "UpdateKeys": [ "Nexus:" ],
+
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.SpaceCore"
+    },
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "IsRequired": false
+    }
+  ]
+}
