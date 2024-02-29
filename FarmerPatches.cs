@@ -172,6 +172,8 @@ namespace PolyamorySweetLove
             skipSpouse = false;
         }
 
+        //FIX I need to determine the point of the below code, likely will remove
+
         public static void Farmer_getSpouse_Postfix(Farmer __instance, ref NPC __result)
         {
             try

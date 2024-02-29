@@ -262,7 +262,7 @@ namespace PolyamorySweetLove
            
             
             {
-                return 3;
+                return (Math.Max(3,currentSpouses.Count));
             }
         }
         public static List<string> GetBedSpouses(FarmHouse fh)

@@ -732,6 +732,9 @@ namespace PolyamorySweetLove
                 {
                     Monitor.Log($"Try give bouquet to {__instance.Name}");
 
+                    /*
+                     * this is changed to Aine FLower.
+                     * 
                     if (ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name))
                     {
                         who.spouse = __instance.Name;
@@ -745,6 +748,7 @@ namespace PolyamorySweetLove
                         }
                         return false;
                     }
+                    */
 
                     if (!__instance.datable.Value)
                     {

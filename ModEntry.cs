@@ -1,9 +1,12 @@
 ﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
+using SpaceCore.Events;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Audio;
 using StardewValley.Characters;
 using StardewValley.Events;
+using StardewValley.Extensions;
 using StardewValley.GameData.Shops;
 using StardewValley.Locations;
 using StardewValley.Menus;
@@ -40,6 +43,8 @@ namespace PolyamorySweetLove
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
+
+
             Config = Helper.ReadConfig<ModConfig>();
             context = this;
             if (!Config.EnableMod)
@@ -59,6 +64,10 @@ namespace PolyamorySweetLove
 
             helper.Events.Content.AssetRequested += Content_AssetRequested;
 
+            SpaceEvents.BeforeGiftGiven += AforeGiftGiven;
+
+
+
             PathFindControllerPatches.Initialize(Monitor, Config, helper);
             Divorce.Initialize(Monitor, Config, helper);
             NPCPatches.Initialize(Monitor, Config, helper);
@@ -77,7 +86,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(NPC), nameof(NPC.marriageDuties)),
                postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_marriageDuties_Postfix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.getSpouse)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_getSpouse_Prefix))
@@ -97,35 +106,37 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(NPC), nameof(NPC.isMarriedOrEngaged)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_isMarriedOrEngaged_Prefix))
             );
+           
             
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.tryToReceiveActiveObject)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Prefix)),
                transpiler: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Transpiler))
             );
+            
 
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), "engagementResponse"),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_engagementResponse_Prefix)),
                postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_engagementResponse_Postfix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.spouseObstacleCheck)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_spouseObstacleCheck_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.setUpForOutdoorPatioActivity)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_setUpForOutdoorPatioActivity_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.playSleepingAnimation)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Prefix)),
                postfix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_playSleepingAnimation_Postfix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.GetDispositionModifiedString)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_GetDispositionModifiedString_Prefix)),
@@ -141,7 +152,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(NPC), nameof(NPC.tryToRetrieveDialogue)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToRetrieveDialogue_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.checkAction)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_checkAction_Prefix))
@@ -156,7 +167,7 @@ namespace PolyamorySweetLove
             );
 
             // Path patches
-            
+
             harmony.Patch(
                original: AccessTools.Constructor(typeof(PathFindController), new Type[] { typeof(Character), typeof(GameLocation), typeof(Point), typeof(int), typeof(bool) }),
                prefix: new HarmonyMethod(typeof(PathFindControllerPatches), nameof(PathFindControllerPatches.PathFindController_Prefix))
@@ -173,10 +184,10 @@ namespace PolyamorySweetLove
                original: AccessTools.Constructor(typeof(PathFindController), new Type[] { typeof(Character), typeof(GameLocation), typeof(Point), typeof(int) }),
                prefix: new HarmonyMethod(typeof(PathFindControllerPatches), nameof(PathFindControllerPatches.PathFindController_Prefix))
             );
-            
+
 
             // Location patches
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(FarmHouse), nameof(FarmHouse.GetSpouseBed)),
                postfix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.FarmHouse_GetSpouseBed_Postfix))
@@ -186,7 +197,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(FarmHouse), nameof(FarmHouse.getSpouseBedSpot)),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.FarmHouse_getSpouseBedSpot_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(Beach), nameof(Beach.checkAction)),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.Beach_checkAction_Prefix))
@@ -196,22 +207,22 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(Beach), "resetLocalState"),
                postfix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.Beach_resetLocalState_Postfix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(GameLocation), "checkEventPrecondition", new Type[] { typeof(string), typeof(bool) }),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.GameLocation_checkEventPrecondition_Prefix))
             );
 
             harmony.Patch(
-               original: AccessTools.Method(typeof(ManorHouse), nameof(ManorHouse.performAction), new Type[] { typeof(string[]), typeof(Farmer), typeof(Location)  }),
+               original: AccessTools.Method(typeof(ManorHouse), nameof(ManorHouse.performAction), new Type[] { typeof(string[]), typeof(Farmer), typeof(Location) }),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.ManorHouse_performAction_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(ManorHouse), nameof(ManorHouse.answerDialogueAction)),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.ManorHouse_answerDialogueAction_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(GameLocation), nameof(GameLocation.answerDialogueAction)),
                prefix: new HarmonyMethod(typeof(LocationPatches), nameof(LocationPatches.GameLocation_answerDialogueAction_Prefix))
@@ -246,7 +257,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.doDivorce)),
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_doDivorce_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.isMarriedOrRoommates)),
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_isMarried_Prefix))
@@ -264,7 +275,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.GetSpouseFriendship)),
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_GetSpouseFriendship_Prefix))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.checkAction)),
                prefix: new HarmonyMethod(typeof(FarmerPatches), nameof(FarmerPatches.Farmer_checkAction_Prefix))
@@ -288,7 +299,7 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(SocialPage), "drawFarmerSlot"),
                transpiler: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_drawSlot_transpiler))
             );
-            
+
             harmony.Patch(
                original: AccessTools.Method(typeof(SocialPage.SocialEntry), nameof(SocialPage.SocialEntry.IsMarriedToAnyone)),
                prefix: new HarmonyMethod(typeof(UIPatches), nameof(UIPatches.SocialPage_isMarriedToAnyone_Prefix))
@@ -338,7 +349,7 @@ namespace PolyamorySweetLove
                     var dict = data.AsDictionary<string, ShopData>();
                     try
                     {
-                        for(int i = 0; i < dict.Data["DesertTrade"].Items.Count; i++)
+                        for (int i = 0; i < dict.Data["DesertTrade"].Items.Count; i++)
                         {
                             if (dict.Data["DesertTrade"].Items[i].ItemId == "(O)808")
                                 dict.Data["DesertTrade"].Items[i].Condition = "PLAYER_FARMHOUSE_UPGRADE Current 1, !PLAYER_HAS_ITEM Current 808";
@@ -464,7 +475,7 @@ namespace PolyamorySweetLove
                     NPC npc = Game1.getCharacterFromName(name);
                     if (npc != null && npc.Age < 2 && !(npc is Child))
                     {
-                        
+
                         if (Game1.characterData[npc.Name].CanBeRomanced)
                         {
                             Monitor.Log($"can edit schedule for {name}");
@@ -496,5 +507,125 @@ namespace PolyamorySweetLove
                 });
             }
         }
-    }
+
+        public static void AforeGiftGiven(object sender, EventArgsBeforeReceiveObject e)
+        {
+
+            if (sender != Game1.player)
+                return;
+            ModEntry.ResetSpouses(Game1.player);
+            var roomie = Game1.player.isRoommate("");
+            NPC c = e.Npc;
+            Friendship friendship;
+            Game1.player.friendshipData.TryGetValue(c.Name, out friendship);
+
+
+            if (e.Gift.Name.Equals("Áine Flower"))
+
+            {
+                //if (c.Equals(Game1.player.spouse) || c.Equals(roomie))
+                if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(c.Name))
+                {
+                    //if (ModEntry.GetSpouses(Game1.player, true).ContainsKey(c.Name))
+                    {
+                        Game1.player.spouse = c.Name;
+                        ModEntry.ResetSpouses(Game1.player);
+                        Game1.currentLocation.playSound("dwop", null, null, SoundContext.NPC);
+
+                        {
+                            FarmHouse fh = Utility.getHomeOfFarmer(Game1.player);
+                            fh.showSpouseRoom();
+                            if (Game1.player.currentLocation == fh)
+                            {
+                                SHelper.Reflection.GetMethod(fh, "resetLocalState").Invoke();
+                            }
+                            else
+                            {
+                                Game1.addHUDMessage(new HUDMessage("The room and patio will change when you enter the farmhouse."));
+                            }
+                        }
+                    }
+                }
+
+
+                else if (friendship.Points < 2000)
+                {
+                    Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_reject", c.displayName));
+                }
+                else
+                {
+                    Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:AineFlower_accept", c.displayName));
+                    Game1.player.changeFriendship(5, c);
+                }
+            }
+            /*
+            else if (e.Gift.ParentSheetIndex == 458)
+
+            {
+                if (c.datable.Value)
+                {
+                    if (Game1.random.NextBool())
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3955", c.displayName));
+                    }
+                    else
+                    {
+                        c.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs.3956", false) : new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs.3957", true));
+                    }
+                    Game1.drawDialogue(c);
+
+                }
+                else
+                {
+                    if (friendship?.IsDating() == true)
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\UI:AlreadyDatingBouquet", c.displayName));
+
+                    }
+                    if (friendship?.IsDivorced() == true)
+                    {
+                        c.CurrentDialogue.Push(new Dialogue(c, "Strings\\Characters:Divorced_bouquet", true));
+                        Game1.drawDialogue(c);
+
+                    }
+                    if (friendship?.Points < Config.MinPointsToDate / 2f)
+                    {
+                        c.CurrentDialogue.Push(Game1.random.NextBool() ? new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs.3958", false) : new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs.3959", true));
+                        Game1.drawDialogue(c);
+
+                    }
+                    if (friendship?.Points < Config.MinPointsToDate)
+                    {
+                        c.CurrentDialogue.Push(new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3960", "3961"), false));
+                        Game1.drawDialogue(c);
+
+                    }
+                    if (friendship?.IsDating() == false)
+                    {
+                        friendship.Status = FriendshipStatus.Dating;
+                        Multiplayer mp = ModEntry.SHelper.Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+                        mp.globalChatInfoMessage("Dating", new string[]
+                        {
+                                   Game1.player.Name,
+                                    c.displayName
+                        });
+                    }
+                    c.CurrentDialogue.Push(new Dialogue(c, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3962", "3963"), true));
+                    Game1.player.changeFriendship(25, c);
+                    Game1.player.reduceActiveItemByOne();
+                    Game1.player.completelyStopAnimatingOrDoingAction();
+                    c.doEmote(20, true);
+                    Game1.drawDialogue(c);
+
+
+
+                }
+            }*/
+        }
+    
+
+
+
+
+     }
 }
