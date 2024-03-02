@@ -3,10 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Characters;
+using StardewValley.Extensions;
 using StardewValley.Locations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using xTile;
 
 namespace PolyamorySweetLove
 {
@@ -87,6 +89,18 @@ namespace PolyamorySweetLove
 
         public static void PlaceSpousesInFarmhouse(FarmHouse farmHouse)
         {
+
+            //string shakeTimer = Helper.Reflection.GetField<string>(__instance, "shakeTimer").GetValue();
+
+            //farmHouse = Game1.RequireLocation<FarmHouse>(Game1.player.homeLocation.Value);
+            Point porchspot = farmHouse.getPorchStandingSpot();
+
+
+
+
+
+
+
             Farmer farmer = farmHouse.owner;
 
             if (farmer == null)
@@ -105,15 +119,38 @@ namespace PolyamorySweetLove
             List<string> bedSpouses = new List<string>();
             string kitchenSpouse = null;
 
+
+            List<string> patioSpouses = new List<string>();
+            string patioSpouse = null;
+
+            List<string> porchSpouses = new List<string>();
+            string porchSpouse = null;
+
+
             foreach (NPC spouse in allSpouses)
             {
                 if(spouse is null) 
                     continue;
                 if (!farmHouse.Equals(spouse.currentLocation))
                 {
+                    if (spouse.TilePoint == porchspot)
+                    {
+                        porchSpouses.Add(spouse.Name);
+                        SMonitor.Log($"{spouse.Name} is on the porch ({spouse.currentLocation.Name})");
+                    }
+
+
                     SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
+
+
                     continue;
+
+                    
                 }
+
+
+
+
                 int type = myRand.Next(0, 100);
 
                 SMonitor.Log($"spouse rand {type}, bed: {Config.PercentChanceForSpouseInBed} kitchen {Config.PercentChanceForSpouseInKitchen}");
@@ -135,10 +172,11 @@ namespace PolyamorySweetLove
                         kitchenSpouse = spouse.Name;
                     }
                 }
-                else if(type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen + Config.PercentChanceForSpouseAtPatio)
+                else if(type < Config.PercentChanceForSpouseInBed + Config.PercentChanceForSpouseInKitchen + Config.PercentChanceForSpouseAtPatio && patioSpouses.Count < 1)
                 {
                     if (!Game1.isRaining && !Game1.IsWinter && !Game1.shortDayNameFromDayOfSeason(Game1.dayOfMonth).Equals("Sat") && !spouse.Name.Equals("Krobus") && spouse.Schedule == null)
                     {
+                        patioSpouses.Add(spouse.Name);
                         SMonitor.Log("made patio spouse: " + spouse.Name);
                         spouse.setUpForOutdoorPatioActivity();
                         SMonitor.Log($"{spouse.Name} at {spouse.currentLocation.Name} {spouse.TilePoint}");
@@ -151,6 +189,19 @@ namespace PolyamorySweetLove
                 if (spouse is null)
                     continue;
                 SMonitor.Log("placing " + spouse.Name);
+
+
+                if (porchSpouses.Count > 1 && porchSpouses.Contains(spouse.Name))
+                {
+                    Game1.warpCharacter(spouse, "FarmHouse", getRandomOpenPointInFarmHouse(myRand, 0, 60));
+                    spouse.setTilePosition(farmHouse.getRandomOpenPointInHouse(myRand));
+                    spouse.faceDirection(myRand.Next(0, 4));
+                    SMonitor.Log($"{spouse.Name} spouse random loc {spouse.TilePoint}");
+                    spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
+                    porchSpouses.Remove(spouse.Name);
+                }
+
+
 
                 Point spouseRoomSpot = new Point(-1, -1); 
                 
@@ -170,6 +221,7 @@ namespace PolyamorySweetLove
                 SMonitor.Log("in farm house");
                 spouse.shouldPlaySpousePatioAnimation.Value = false;
 
+
                 Vector2 bedPos = GetSpouseBedPosition(farmHouse, spouse.Name);
 
                 if (bedSpouses.Count > 0 && bedSpouses.Contains(spouse.Name) && bedPos != Vector2.Zero)
@@ -177,6 +229,7 @@ namespace PolyamorySweetLove
                     SMonitor.Log($"putting {spouse.Name} in bed");
                     spouse.position.Value = GetSpouseBedPosition(farmHouse, spouse.Name);
                 }
+
                 else if (kitchenSpouse == spouse.Name && !IsTileOccupied(farmHouse, farmHouse.getKitchenStandingSpot(), spouse.Name))
                 {
                     SMonitor.Log($"{spouse.Name} is in kitchen");
@@ -504,5 +557,52 @@ namespace PolyamorySweetLove
                 list[list.Keys.ToArray()[n]] = value;
             }
         }
+
+
+        public static void warpSpouse(NPC nPC, Point point) 
+        { 
+        
+        
+        }
+
+       
+
+        public static Point getRandomOpenPointInFarmHouse(Random r, int buffer = 0, int tries = 60)
+        {
+            FarmHouse farmhouse = Utility.getHomeOfFarmer(Game1.player);
+
+            for (int i = 0; i < tries; i++)
+            {
+                Map map = farmhouse.Map;
+                Point result = new Point(r.Next(map.Layers[0].LayerWidth), r.Next(map.Layers[0].LayerHeight));
+                Microsoft.Xna.Framework.Rectangle rect = new Microsoft.Xna.Framework.Rectangle(result.X - buffer, result.Y - buffer, 1 + buffer * 2, 1 + buffer * 2);
+                bool flag = false;
+                foreach (Point point in rect.GetPoints())
+                {
+                    int x = point.X;
+                    int y = point.Y;
+                    flag = farmhouse.getTileIndexAt(x, y, "Back") == -1 || !farmhouse.CanItemBePlacedHere(new Vector2(x, y)) || farmhouse.isTileOnWall(x, y);
+                    if (farmhouse.getTileIndexAt(x, y, "Back") == 0 && farmhouse.getTileSheetIDAt(x, y, "Back") == "indoor")
+                    {
+                        flag = true;
+                    }
+
+                    if (flag)
+                    {
+                        break;
+                    }
+                }
+
+                if (!flag)
+                {
+                    return result;
+                }
+            }
+
+            return Point.Zero;
+        }
+
+
+
     }
 }
