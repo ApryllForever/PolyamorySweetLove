@@ -21,27 +21,32 @@ namespace PolyamorySweetLove
             Config = config;
         }
         public static bool startingLoadActors = false;
+        public static Vector2 fuckaway;
+ 
 
         public static bool Event_answerDialogueQuestion_Prefix(Event __instance, NPC who, string answerKey)
         {
             try
             {
+                string accept = $"Characters\\Dialogue\\{who.Name}:FlowerDance_Accept_Spouse";
+                string acceptbackup = $"Strings\\StringsFromCSFiles:Event.cs.1634";
 
                 if (answerKey == "danceAsk" && !who.HasPartnerForDance && Game1.player.friendshipData[who.Name].IsMarried())
                 {
-                    string accept = "";
+                    //string accept = "You want to be my partner for the flower dance?#$b#Okay! I'd love to dance with you! <$h";
+                   
                     var gender = who.Gender;
-                    if (gender == Gender.Female)
-                    {
-                        
-                        {
-                            accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1634");
-                        }
-                    }
-                    else
-                    {
-                        accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1633");
-                    }
+                    
+                   // if (gender == Gender.Female)
+                  //  {
+                    //    {
+                   //         //accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1634");
+                   //     }
+                   // }
+                   // else
+                   // {
+                    //    accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1633");
+                    //}
                     try
                     {
                         Game1.player.changeFriendship(250, Game1.getCharacterFromName(who.Name, true));
@@ -50,7 +55,34 @@ namespace PolyamorySweetLove
                     {
                     }
                     Game1.player.dancePartner.Value = who;
-                    who.setNewDialogue(accept, false, false);
+
+                    if (gender == Gender.Female)
+                    {
+                        if(who.Dialogue.ContainsKey("FlowerDance_Accept_Spouse")) 
+                        {
+                            who.setNewDialogue(accept, false, false);
+                            //$"Characters\\Dialogue\\{who.Name}:FlowerDance_Accept_Spouse"
+                        }
+                        else
+                        {
+                            who.setNewDialogue(acceptbackup, false, false);
+                        }
+                    }
+                    else 
+                    {
+                        if (who.Dialogue.ContainsKey("FlowerDance_Accept_Spouse"))
+                        {
+                            who.setNewDialogue(accept, false, false);
+                            //who.setNewDialogue(Game1.content.LoadString($"Characters\\Dialogue\\{who.Name}:FlowerDance_Accept_Spouse"), false, false);
+                            //$"Characters\\Dialogue\\{who.Name}:FlowerDance_Accept_Spouse"
+                        }
+                        else
+                        {
+                            who.setNewDialogue(acceptbackup, false, false);
+                        }
+                    }
+
+
                     using (List<NPC>.Enumerator enumerator = __instance.actors.GetEnumerator())
                     {
                         while (enumerator.MoveNext())
@@ -88,12 +120,26 @@ namespace PolyamorySweetLove
             }
         }
 
-        public static void Event_command_loadActors_Postfix()
+        public static void Event_command_loadActors_Postfix(NPC __instance)
         {
             try
             {
+                var fuckaway = new Vector2((int)(500), (int)(500));
+              
                 startingLoadActors = false;
                 Game1Patches.lastGotCharacter = null;
+
+                // && Game1.CurrentEvent.Equals("set-up")
+                //if (Game1.isFestival() && Game1.currentSeason == "spring" && Game1.Date.DayOfMonth == 24 )
+               // {
+                    //if(__instance.Age <= 2 )
+                  // if (!__instance.isVillager() && __instance.Name != "Jas" && __instance.Name != "Vincent")
+                   // {
+                    //    __instance.setTileLocation(fuckaway);
+                    //}
+
+                //}
+
 
             }
             catch (Exception ex)

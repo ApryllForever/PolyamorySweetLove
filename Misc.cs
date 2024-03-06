@@ -315,7 +315,28 @@ namespace PolyamorySweetLove
            
             
             {
-                return (Math.Max(3,currentSpouses.Count));
+
+                if (currentSpouses.Count <= 2)
+                {
+                    return 3;
+                }
+                else if (currentSpouses.Count == 3)
+                {
+                    return 4;
+                }
+                else if (currentSpouses.Count == 4)
+                {
+                    return 5;
+                }
+                else if (currentSpouses.Count == 5)
+                {
+                    return 6;
+                }
+
+                else
+                {
+                    return 6;//currentSpouses.Count + 1;
+                }
             }
         }
         public static List<string> GetBedSpouses(FarmHouse fh)

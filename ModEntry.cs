@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using SpaceCore.Events;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Audio;
 using StardewValley.Characters;
@@ -23,6 +24,8 @@ namespace PolyamorySweetLove
     public partial class ModEntry : Mod
     {
 
+        public static Mod instance;
+
         public static IMonitor SMonitor;
         public static IModHelper SHelper;
         public static ModConfig Config;
@@ -43,7 +46,7 @@ namespace PolyamorySweetLove
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-
+            instance = this;
 
             Config = Helper.ReadConfig<ModConfig>();
             context = this;
@@ -506,6 +509,19 @@ namespace PolyamorySweetLove
                     data["Beach_Mariner_PlayerBuyItem_AnswerYes"] = data["Beach_Mariner_PlayerBuyItem_AnswerYes"].Replace("5000", Config.PendantPrice + "");
                 });
             }
+            else if (e.Name.IsEquivalentTo("Strings/StringsFromApryllFiles"))
+            {
+                e.LoadFrom(
+                    () => {
+                        return new Dictionary<string, string>
+                        {
+                            ["FlowerDanceFemaleAccept"] = "You want to be my partner for the flower dance?#$b#Okay! I'd love to dance with you! <$h",
+                            ["FlowerDanceMaleAccept"] = "You want to be my partner for the flower dance?#$b#Okay! I'd love to dance with you! <$h"
+                        };
+                    },
+                    AssetLoadPriority.Medium
+                );
+            }
         }
 
         public static void AforeGiftGiven(object sender, EventArgsBeforeReceiveObject e)
@@ -558,6 +574,9 @@ namespace PolyamorySweetLove
                     Game1.player.changeFriendship(5, c);
                 }
             }
+
+
+
             /*
             else if (e.Gift.ParentSheetIndex == 458)
 
