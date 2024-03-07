@@ -64,6 +64,7 @@ namespace PolyamorySweetLove
             helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
             helper.Events.GameLoop.DayStarted += GameLoop_DayStarted;
             helper.Events.GameLoop.OneSecondUpdateTicked += GameLoop_OneSecondUpdateTicked;
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
 
             helper.Events.Content.AssetRequested += Content_AssetRequested;
 
@@ -641,7 +642,21 @@ namespace PolyamorySweetLove
                 }
             }*/
         }
-    
+
+        public static bool Button = false;
+
+        public void OnButtonPressed(object sender, EventArgs e) 
+        { 
+        
+            bool actionButton = this.Helper.Input.IsDown(SButton.MouseLeft) || this.Helper.Input.IsDown(SButton.MouseMiddle) || this.Helper.Input.IsDown(SButton.MouseRight)  || this.Helper.Input.IsDown(SButton.C) || this.Helper.Input.IsDown(SButton.LeftTrigger);
+
+            if (actionButton)
+            {
+                Button = true;
+            }
+        }
+
+      
 
 
 
