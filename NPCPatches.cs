@@ -569,6 +569,20 @@ namespace PolyamorySweetLove
                             int spouseFrame = 28;
                             bool facingRight = true;
                             string name = __instance.Name;
+
+                            if (!__instance.Name.Equals(__instance.getTextureName()))
+                            {
+
+                                name = __instance.getTextureName();
+
+                            }
+
+
+                            //if(__instance.Name == "PaperNautilus_Isla")
+                            //{
+                            //    name = "Isla";
+                           // }
+
                             if (name == "Sam")
                             {
                                 spouseFrame = 36;
@@ -750,7 +764,7 @@ namespace PolyamorySweetLove
                         return false;
                     }
                     */
-                    string accept = $"Characters\\Dialogue\\{__instance.Name}:FlowerDance_Accept_Spouse";
+                    string accept = $"Characters\\Dialogue\\{__instance.Name}:AcceptBouquet";
                     string rejectDivorced = $"Characters\\Dialogue\\{__instance.Name}:RejectBouquet_Divorced";
                     string rejectNotDatable = $"Characters\\Dialogue\\{__instance.Name}:RejectBouquet_NotDatable";
                     string rejectNpcAlreadyMarried = $"Characters\\Dialogue\\{__instance.Name}:RejectBouquet_NpcAlreadyMarried";
@@ -940,9 +954,9 @@ namespace PolyamorySweetLove
                         Game1.drawDialogue(__instance);
                         return false;
                     }
-                    else if (__instance.datable.Value && who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points < Math.Min(10, Config.MinPointsToMarry))
+                    else if (__instance.datable.Value && who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points < 10) //Math.Min(10, Config.MinPointsToMarry)
                     {
-                        Monitor.Log($"Tried to give pendant to someone with few hearts than 10 or the configured amount.");
+                        Monitor.Log($"Tried to give pendant to someone with fewer hearts than 10.");
 
                         if (!who.friendshipData[__instance.Name].ProposalRejected)
                         {
@@ -978,9 +992,65 @@ namespace PolyamorySweetLove
 
 
                         Monitor.Log($"Tried to give pendant to someone marriable");
-                        if (!__instance.datable.Value || who.HouseUpgradeLevel >= 1)
+                        if ( who.HouseUpgradeLevel >= 1)
                         {
-                            typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
+
+
+                            Game1.changeMusicTrack("silence");
+                            who.spouse = __instance.Name;
+                         
+                            {
+                                Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, __instance.GetTokenizedDisplayName());
+                            }
+
+                            //Friendship friendship = who.friendshipData[base.Name];
+                            friendship.Status = FriendshipStatus.Engaged;
+                            
+                            WorldDate worldDate = new WorldDate(Game1.Date);
+                            worldDate.TotalDays += 3;
+                            while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                            {
+                                worldDate.TotalDays++;
+                            }
+
+                            friendship.WeddingDate = worldDate;
+                            __instance.CurrentDialogue.Clear();
+                            
+                            {
+                                Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
+                                if (dialogue2 != null)
+                                {
+                                    __instance.CurrentDialogue.Push(dialogue2);
+                                }
+
+                                dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Strings\\StringsFromCSFiles:" + __instance.Name + "_Engaged");
+                                if (dialogue2 != null)
+                                {
+                                    __instance.CurrentDialogue.Push(dialogue2);
+                                }
+                                else
+                                {
+                                    __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3980"));
+                                }
+                            }
+
+                            Dialogue obj = __instance.CurrentDialogue.Peek();
+                            obj.onFinish = (Action)Delegate.Combine(obj.onFinish, (Action)delegate
+                            {
+                                Game1.changeMusicTrack("none", track_interruptable: true);
+                                GameLocation.HandleMusicChange(null, Game1.player.currentLocation);
+                            });
+                            who.changeFriendship(1, __instance);
+                            who.reduceActiveItemByOne();
+                            who.completelyStopAnimatingOrDoingAction();
+                            Game1.drawDialogue(__instance);
+
+
+
+
+
+
+                            //typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
                             return false;
                         }
                         Monitor.Log($"Can't marry");

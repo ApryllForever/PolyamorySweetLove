@@ -375,9 +375,32 @@ namespace PolyamorySweetLove
             return spouses;
         }
 
-
-        public static int GetTopOfHeadSleepOffset(string name)
+        public static string NameOrTextureName(string name)
         {
+            NPC npc = new NPC();
+            npc.Name = name;
+            npc.getTextureName();
+
+            if (name != npc.getTextureName()) 
+            { 
+            name = npc.getTextureName();
+            }
+            return name;
+        }
+       
+             public static int GetTopOfHeadSleepOffset(string name)
+        {
+            var nomena = Game1.getCharacterFromName(name);
+
+            if(nomena.Name != nomena.getTextureName())
+            {
+                name = nomena.getTextureName();
+            }
+           
+            
+
+           
+
             if (topOfHeadOffsets.ContainsKey(name))
             {
                 return topOfHeadOffsets[name];
@@ -388,7 +411,11 @@ namespace PolyamorySweetLove
             if (name == "Krobus")
                 return 8;
 
+          
+
+
             Texture2D tex = Game1.content.Load<Texture2D>($"Characters\\{name}");
+           
 
             int sleepidx;
             string sleepAnim = SleepAnimation(name);
@@ -433,6 +460,13 @@ namespace PolyamorySweetLove
 
         public static bool HasSleepingAnimation(string name)
         {
+            var nomena = Game1.getCharacterFromName(name);
+
+            if (nomena.Name != nomena.getTextureName())
+            {
+                name = nomena.getTextureName();
+            }
+
             string sleepAnim = SleepAnimation(name);
             if (sleepAnim == null || !sleepAnim.Contains("/"))
                 return false;
@@ -440,13 +474,47 @@ namespace PolyamorySweetLove
             if (!int.TryParse(sleepAnim.Split('/')[0], out int sleepidx))
                 return false;
 
-            Texture2D tex = SHelper.GameContent.Load<Texture2D>($"Characters/{name}");
+            //if (!NPC.Name.Equals(__instance.getTextureName()))
+           // {
+
+             //   name = __instance.getTextureName();
+
+           // }
+
+
+
+            //Texture2D tex = SHelper.GameContent.Load<Texture2D>($"Characters/{name}");
+
+            //if (tex == null)
+            {
+                try
+                {
+                    Texture2D tex = SHelper.GameContent.Load<Texture2D>($"Characters/{name}");
+                    if (sleepidx / 4 * 32 >= tex.Height)
+                    {
+                        return false;
+                    }
+
+                }
+
+                catch
+                {
+                    //NPC fubar = new NPC();
+                    //var nombre = fubar.getTextureName();
+
+                    //Texture2D tex = SHelper.GameContent.Load<Texture2D>($"Characters/{nombre}");
+                    //if (sleepidx / 4 * 32 >= tex.Height)
+                    //{
+                   //    return false;
+                    //}
+
+                    SMonitor.Log("Unable to get texture for NPC. Probably the names are wrong somewhere in the NPC source.");
+
+                }
+            }
             //SMonitor.Log($"tex height for {name}: {tex.Height}");
 
-            if (sleepidx / 4 * 32 >= tex.Height)
-            {
-                return false;
-            }
+           
             return true;
         }
 
