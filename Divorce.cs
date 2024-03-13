@@ -37,10 +37,13 @@ namespace PolyamorySweetLove
                 }
                 List<Response> responses = new List<Response>();
                 responses.Add(new Response($"divorce_Yes_{whichAnswer}", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_Yes")));
+
                 if (Config.ComplexDivorce)
                 {
                     responses.Add(new Response($"divorce_complex_{whichAnswer}", Helper.Translation.Get("divorce_complex")));
                 }
+
+
                 responses.Add(new Response("No", Game1.content.LoadString("Strings\\Lexicon:QuestionDialogue_No")));
                 (Game1.activeClickableMenu as DialogueBox)?.closeDialogue();
                 Game1.currentLocation.createQuestionDialogue(s2, responses.ToArray(), "freelovedivorce");
@@ -146,7 +149,8 @@ namespace PolyamorySweetLove
                             money = (int)Math.Round(money * mult / 100f);
                         }
                         Monitor.Log($"money cost {money}");
-                        Game1.player.Money -= money;
+                        //Game1.player.Money -= money;
+                        Game1.player.Money -= 50000;
                     }
                     Game1.player.divorceTonight.Value = true;
                     string s = Game1.content.LoadString("Strings\\Locations:ManorHouse_DivorceBook_Filed_" + complexDivorceSpouse, complexDivorceSpouse);

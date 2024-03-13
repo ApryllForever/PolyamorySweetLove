@@ -36,17 +36,7 @@ namespace PolyamorySweetLove
                     //string accept = "You want to be my partner for the flower dance?#$b#Okay! I'd love to dance with you! <$h";
                    
                     var gender = who.Gender;
-                    
-                   // if (gender == Gender.Female)
-                  //  {
-                    //    {
-                   //         //accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1634");
-                   //     }
-                   // }
-                   // else
-                   // {
-                    //    accept = Game1.content.LoadString("Strings\\StringsFromCSFiles:Event.cs.1633");
-                    //}
+               
                     try
                     {
                         Game1.player.changeFriendship(250, Game1.getCharacterFromName(who.Name, true));
@@ -128,19 +118,6 @@ namespace PolyamorySweetLove
               
                 startingLoadActors = false;
                 Game1Patches.lastGotCharacter = null;
-
-                // && Game1.CurrentEvent.Equals("set-up")
-                //if (Game1.isFestival() && Game1.currentSeason == "spring" && Game1.Date.DayOfMonth == 24 )
-               // {
-                    //if(__instance.Age <= 2 )
-                  // if (!__instance.isVillager() && __instance.Name != "Jas" && __instance.Name != "Vincent")
-                   // {
-                    //    __instance.setTileLocation(fuckaway);
-                    //}
-
-                //}
-
-
             }
             catch (Exception ex)
             {

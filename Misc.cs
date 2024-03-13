@@ -96,11 +96,6 @@ namespace PolyamorySweetLove
             Point porchspot = farmHouse.getPorchStandingSpot();
 
 
-
-
-
-
-
             Farmer farmer = farmHouse.owner;
 
             if (farmer == null)
@@ -138,18 +133,9 @@ namespace PolyamorySweetLove
                         porchSpouses.Add(spouse.Name);
                         SMonitor.Log($"{spouse.Name} is on the porch ({spouse.currentLocation.Name})");
                     }
-
-
                     SMonitor.Log($"{spouse.Name} is not in farm house ({spouse.currentLocation.Name})");
-
-
-                    continue;
-
-                    
+                    continue;     
                 }
-
-
-
 
                 int type = myRand.Next(0, 100);
 
@@ -200,12 +186,8 @@ namespace PolyamorySweetLove
                     spouse.setRandomAfternoonMarriageDialogue(Game1.timeOfDay, farmHouse, false);
                     porchSpouses.Remove(spouse.Name);
                 }
-
-
-
                 Point spouseRoomSpot = new Point(-1, -1); 
                 
-               
                 if(spouseRoomSpot.X < 0 && farmer.spouse == spouse.Name)
                 {
                     spouseRoomSpot = farmHouse.GetSpouseRoomSpot();
@@ -220,7 +202,6 @@ namespace PolyamorySweetLove
 
                 SMonitor.Log("in farm house");
                 spouse.shouldPlaySpousePatioAnimation.Value = false;
-
 
                 Vector2 bedPos = GetSpouseBedPosition(farmHouse, spouse.Name);
 
@@ -335,7 +316,7 @@ namespace PolyamorySweetLove
 
                 else
                 {
-                    return 6;//currentSpouses.Count + 1;
+                    return 7;//currentSpouses.Count + 1;
                 }
             }
         }

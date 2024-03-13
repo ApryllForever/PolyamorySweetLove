@@ -8,8 +8,8 @@ namespace PolyamorySweetLove
         public int PendantPrice { get; set; } = 5000;
         public int MinPointsToMarry { get; set; } = 2500;
         public int MinPointsToDate { get; set; } = 2000;
-        public bool PreventHostileDivorces { get; set; } = true;
-        public bool ComplexDivorce { get; set; } = true;
+        public bool PreventHostileDivorces { get; set; } = false;
+        public bool ComplexDivorce { get; set; } = false;
         public bool RoommateRomance { get; set; } = false;
         public bool RomanceAllVillagers { get; set; } = false;
         public bool GayPregnancies { get; set; } = true;
