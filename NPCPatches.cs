@@ -523,6 +523,13 @@ namespace PolyamorySweetLove
             }
         }
 
+
+        /*
+         * 
+         * 
+         * This has been moved to Kiss
+         * 
+         * 
         public static bool NPC_checkAction_Prefix(ref NPC __instance, ref Farmer who, GameLocation l, ref bool __result)
         {
             if (!Config.EnableMod || __instance.IsInvisible || __instance.isSleeping.Value || !who.canMove || who.checkForQuestComplete(__instance, -1, -1, who.ActiveObject, null, -1, 5) || (who.pantsItem.Value?.ParentSheetIndex == 15 && (__instance.Name.Equals("Lewis") || __instance.Name.Equals("Marnie"))) || (__instance.Name.Equals("Krobus") && who.hasQuest("28")))
@@ -551,6 +558,13 @@ namespace PolyamorySweetLove
                         __result = true;
                         return false;
                     }
+                    /*
+                     * 
+                     *    This is duplicate code of SweetKiss
+                     * 
+                     * 
+                     * 
+                     * 
                     if (__instance.Sprite.CurrentAnimation == null && !__instance.hasTemporaryMessageAvailable() && __instance.currentMarriageDialogue.Count == 0 && __instance.CurrentDialogue.Count == 0 && Game1.timeOfDay < 2200 && !__instance.isMoving() && who.ActiveObject == null )
                     {
                         Monitor.Log($"Trying to kiss/hug {__instance.Name}");
@@ -713,6 +727,8 @@ namespace PolyamorySweetLove
             }
             return true;
         }
+
+*/
 
 
         public static bool NPC_tryToReceiveActiveObject_Prefix(NPC __instance, ref Farmer who, Dictionary<string, string> ___dialogue)
@@ -915,6 +931,11 @@ namespace PolyamorySweetLove
                         return false;
                     }
 
+                    /*
+                     * 
+                     * Can Marry any NPC regardless of who they are married to...
+                     * 
+                     * 
                     if (__instance.isMarriedOrEngaged() && !ModEntry.GetSpouses(who, true).ContainsKey(__instance.Name) && !friendship.IsEngaged())
                     {
                         Monitor.Log($"Tried to give pendant who is already either engaged or married to someone else. Too late for you!!! :) ");
@@ -930,7 +951,7 @@ namespace PolyamorySweetLove
                             Game1.drawDialogue(__instance);
                         }
                         return false;
-                    }
+                    }*/
 
                         //if (!__instance.datable.Value || __instance.isMarriedOrEngaged() || (who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points < Config.MinPointsToMarry * 0.6f))
                         if (!__instance.datable.Value)

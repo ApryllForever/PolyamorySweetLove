@@ -17,6 +17,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using xTile.Dimensions;
+using StardewValley.Util;
+using StardewValley.GameData.Characters;
+using System.Reflection;
 
 namespace PolyamorySweetLove
 {
@@ -71,6 +74,8 @@ namespace PolyamorySweetLove
 
             SpaceEvents.BeforeGiftGiven += AforeGiftGiven;
 
+            Helper.ConsoleCommands.Add("Proposal_Sweet", "Attempt or Force Proposal. Usage:\n\nProposal_Sweet // shows info about current proposal.\nProposal_Sweet Attempt X // Attempt to propose to a character.\nProposal_Sweet Force X // Force Proposal to a character.", new Action<string, string[]>(ProposalCommand));
+
 
 
             PathFindControllerPatches.Initialize(Monitor, Config, helper);
@@ -111,14 +116,14 @@ namespace PolyamorySweetLove
                original: AccessTools.Method(typeof(NPC), nameof(NPC.isMarriedOrEngaged)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_isMarriedOrEngaged_Prefix))
             );
-           
-            
+
+
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), nameof(NPC.tryToReceiveActiveObject)),
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Prefix)),
                transpiler: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToReceiveActiveObject_Transpiler))
             );
-            
+
 
             harmony.Patch(
                original: AccessTools.Method(typeof(NPC), "engagementResponse"),
@@ -158,10 +163,10 @@ namespace PolyamorySweetLove
                prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_tryToRetrieveDialogue_Prefix))
             );
 
-            harmony.Patch(
-               original: AccessTools.Method(typeof(NPC), nameof(NPC.checkAction)),
-               prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_checkAction_Prefix))
-            );
+            // harmony.Patch(
+            //    original: AccessTools.Method(typeof(NPC), nameof(NPC.checkAction)),
+            //    prefix: new HarmonyMethod(typeof(NPCPatches), nameof(NPCPatches.NPC_checkAction_Prefix))
+            // );
 
 
             // Child patches
@@ -514,7 +519,8 @@ namespace PolyamorySweetLove
             else if (e.Name.IsEquivalentTo("Strings/StringsFromApryllFiles"))
             {
                 e.LoadFrom(
-                    () => {
+                    () =>
+                    {
                         return new Dictionary<string, string>
                         {
                             ["FlowerDanceFemaleAccept"] = "You want to be my partner for the flower dance?#$b#Okay! I'd love to dance with you! <$h",
@@ -645,30 +651,303 @@ namespace PolyamorySweetLove
         }
 
         public static bool Button = false;
+        public static bool Proposal_Sweet = false;
 
-        public void OnButtonPressed(object sender, EventArgs e) 
-        { 
-            bool actionButton = this.Helper.Input.IsDown(SButton.MouseLeft) || this.Helper.Input.IsDown(SButton.MouseMiddle) || this.Helper.Input.IsDown(SButton.MouseRight)  || this.Helper.Input.IsDown(SButton.C) || this.Helper.Input.IsDown(SButton.LeftTrigger);
+        public void OnButtonPressed(object sender, EventArgs e)
+        {
+            bool actionButton = this.Helper.Input.IsDown(SButton.MouseLeft) || this.Helper.Input.IsDown(SButton.MouseMiddle) || this.Helper.Input.IsDown(SButton.MouseRight) || this.Helper.Input.IsDown(SButton.C) || this.Helper.Input.IsDown(SButton.LeftTrigger) || this.Helper.Input.IsDown(SButton.RightTrigger) || this.Helper.Input.IsDown(SButton.LeftShoulder) || this.Helper.Input.IsDown(SButton.RightShoulder) || this.Helper.Input.IsDown(SButton.ControllerA) || this.Helper.Input.IsDown(SButton.ControllerB) || this.Helper.Input.IsDown(SButton.ControllerX) || this.Helper.Input.IsDown(SButton.ControllerY) || this.Helper.Input.IsDown(SButton.ControllerBack) || this.Helper.Input.IsDown(SButton.ControllerStart) || this.Helper.Input.IsDown(SButton.DPadDown) || this.Helper.Input.IsDown(SButton.DPadLeft) || this.Helper.Input.IsDown(SButton.DPadUp) || this.Helper.Input.IsDown(SButton.DPadRight) || this.Helper.Input.IsDown(SButton.LeftStick) || this.Helper.Input.IsDown(SButton.RightStick) || this.Helper.Input.IsDown(SButton.BigButton) || this.Helper.Input.IsDown(SButton.X);
 
             if (actionButton)
             {
-                 Button = true;
+                Button = true;
             }
         }
         public void OnButtonReleased(object sender, EventArgs e)
         {
-            bool actionButton = this.Helper.Input.IsDown(SButton.MouseLeft) || this.Helper.Input.IsDown(SButton.MouseMiddle) || this.Helper.Input.IsDown(SButton.MouseRight) || this.Helper.Input.IsDown(SButton.C) || this.Helper.Input.IsDown(SButton.LeftTrigger);
+            // bool actionButton = this.Helper.Input.IsDown(SButton.MouseLeft) || this.Helper.Input.IsDown(SButton.MouseMiddle) || this.Helper.Input.IsDown(SButton.MouseRight) || this.Helper.Input.IsDown(SButton.C) || this.Helper.Input.IsDown(SButton.LeftTrigger);
 
             //if (actionButton)
-            
-                Button = false;
-            
+
+            Button = false;
+
         }
 
 
+        private void ProposalCommand(string arg1, string[] arg2)
+        {
+            if (!Context.IsWorldReady)
+            {
+                Monitor.Log("Game not loaded.", LogLevel.Error);
+                return;
+            }
+
+            if (!(Game1.player.friendshipData[Game1.player.spouse].IsEngaged()))
+            {
+                Monitor.Log("No current engagement.", LogLevel.Alert);
+                return;
+            }
+            string fiancee = Game1.player.spouse;
+            if (arg2.Length == 0)
+            {
+                Monitor.Log($"{Game1.player.Name} is engaged to {fiancee}. The wedding is in {Game1.player.friendshipData[fiancee].CountdownToWedding} days, on {Utility.getDateStringFor(Game1.player.friendshipData[fiancee].WeddingDate.DayOfMonth, Game1.player.friendshipData[fiancee].WeddingDate.SeasonIndex, Game1.player.friendshipData[fiancee].WeddingDate.Year)}.", LogLevel.Info);
+            }
+            else if (arg2.Length == 2 && arg2[0] == "Attempt")
+            {
+                NPC monica = Game1.getCharacterFromName(arg2[1]);
+
+                if (monica != null)
+                {
+                    //Button = true;
+
+                    AttemptEngagement(monica, Game1.player);
+
+                    // typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(monica, new object[] { Game1.player, false });
+
+                }
+
+                Monitor.Log($"{Game1.player.Name} attemping to propose to {monica}.", LogLevel.Info);
+            }
+            else if (arg2.Length == 2 && arg2[0] == "Force")
+            {
+
+                NPC JaneGrey = Game1.getCharacterFromName(arg2[1]);
+
+                TryForce(JaneGrey, Game1.player);
+
+           
+                Monitor.Log($"{Game1.player.Name} is now engaged to {JaneGrey}.", LogLevel.Info);
+            }
+        }
+
+        public static void AttemptEngagement(NPC __instance, Farmer who) //(NPC __instance, ref Farmer who,
+        {
+            Friendship friendship;
+            who.friendshipData.TryGetValue(__instance.Name, out friendship);
+
+            string acceptpendant = $"Strings\\StringsFromCSFiles\\{__instance.Name}:{__instance.Name}_Engaged";
+            string rejectDivorced = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_Divorced";
+            string rejectNotDatable = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_NotDatable";
+            string rejectNpcAlreadyMarried = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_NpcWithSomeoneElse";
+            string rejectPlayerAlreadyMarried = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_PlayerWithSomeoneElse";
+            string rejectUnder8Hearts = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_Under8Hearts";
+            string rejectUnderTenHearts = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_Under10Hearts";
+            string rejectUnderTenHeartsAskedAgain = $"Characters\\Dialogue\\{__instance.Name}:RejectMermaidPendant_Under10Hearts_AskedAgain";
+
+            SMonitor.Log($"Try give pendant to {__instance.Name}");
+            if (who.isEngaged())
+            {
+                SMonitor.Log($"Tried to give pendant while player already currently engaged");
+
+                if ((__instance.Dialogue.ContainsKey("RejectMermaidPendant_PlayerWithSomeoneElse")))
+                {
+                    __instance.setNewDialogue(rejectPlayerAlreadyMarried, false, false);
+                }
+
+                else
+                {
+                    __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3965", "3966"), true));
+                    Game1.drawDialogue(__instance);
+                }
+            }
+
+            else if (!__instance.datable.Value)
+            {
+                SMonitor.Log($"Tried to give pendant to someone not datable");
+
+                if ((__instance.Dialogue.ContainsKey("RejectMermaidPendant_NotDatable")))
+                {
+                    __instance.setNewDialogue(rejectNotDatable, false, false);
+                }
+
+                else
+                {
+                    if (ModEntry.myRand.NextDouble() < 0.5)
+                    {
+                        Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", __instance.displayName));
+
+                    }
+                }
+                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs." + ((__instance.Gender == Gender.Female) ? "3970" : "3971"), false));
+                Game1.drawDialogue(__instance);
+
+            }
+            else if (__instance.datable.Value && who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points < 10) //Math.Min(10, Config.MinPointsToMarry)
+            {
+                SMonitor.Log($"Tried to give pendant to someone with fewer hearts than 10.");
+
+                if (!who.friendshipData[__instance.Name].ProposalRejected)
+                {
+                    if ((__instance.Dialogue.ContainsKey("RejectMermaidPendant_Under10Hearts")))
+                    {
+                        __instance.setNewDialogue(rejectUnderTenHearts, false, false);
+                    }
+                    else
+                    {
+                        __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3972", "3973"), false));
+                    }
+                    Game1.drawDialogue(__instance);
+                    who.changeFriendship(-50, __instance);
+                    who.friendshipData[__instance.Name].ProposalRejected = true;
+
+                }
+                if ((__instance.Dialogue.ContainsKey("RejectMermaidPendant_Under10Hearts_AskedAgain")))
+                {
+                    __instance.setNewDialogue(rejectUnderTenHeartsAskedAgain, false, false);
+                }
+                else
+                {
+                    __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs." + Game1.random.Choose("3974", "3975"), true));
+                }
+                Game1.drawDialogue(__instance);
+                who.changeFriendship(-100, __instance);
+
+            }
+            else
+            {
+
+                //WORK HERE APRYLL. PUT MEGAN UP.
+                SMonitor.Log($"Tried to give pendant to someone marriable");
+                if (who.HouseUpgradeLevel >= 1)
+                {
 
 
+                    Game1.changeMusicTrack("silence");
+                    who.spouse = __instance.Name;
+
+                    {
+                        Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, __instance.GetTokenizedDisplayName());
+                    }
+
+                    //Friendship friendship = who.friendshipData[base.Name];
+                    friendship.Status = FriendshipStatus.Engaged;
+
+                    WorldDate worldDate = new WorldDate(Game1.Date);
+                    worldDate.TotalDays += 3;
+                    while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                    {
+                        worldDate.TotalDays++;
+                    }
+
+                    friendship.WeddingDate = worldDate;
+                    __instance.CurrentDialogue.Clear();
+
+                    {
+                        Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
+                        if (dialogue2 != null)
+                        {
+                            __instance.CurrentDialogue.Push(dialogue2);
+                        }
+
+                        dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Strings\\StringsFromCSFiles:" + __instance.Name + "_Engaged");
+                        if (dialogue2 != null)
+                        {
+                            __instance.CurrentDialogue.Push(dialogue2);
+                        }
+                        else
+                        {
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3980"));
+                        }
+                    }
+
+                    Dialogue obj = __instance.CurrentDialogue.Peek();
+                    obj.onFinish = (Action)Delegate.Combine(obj.onFinish, (Action)delegate
+                    {
+                        Game1.changeMusicTrack("none", track_interruptable: true);
+                        GameLocation.HandleMusicChange(null, Game1.player.currentLocation);
+                    });
+                    who.changeFriendship(1, __instance);
+                    who.reduceActiveItemByOne();
+                    who.completelyStopAnimatingOrDoingAction();
+                    Game1.drawDialogue(__instance);
+
+                    //typeof(NPC).GetMethod("engagementResponse", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(__instance, new object[] { who, false });
+
+                }
+                SMonitor.Log($"Can't marry");
+                if (ModEntry.myRand.NextDouble() < 0.5)
+                {
+                    Game1.drawObjectDialogue(Game1.content.LoadString("Strings\\StringsFromCSFiles:NPC.cs.3969", __instance.displayName));
+
+                }
+                __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3972", false));
+                Game1.drawDialogue(__instance);
+
+            }
+
+        }
 
 
+        public static void TryForce(NPC __instance, Farmer who)
+        {
+            if (__instance.IsVillager)
+            {
+                if (who.HouseUpgradeLevel == 0)
+                {
+                    SMonitor.Log($"You must upgrade your house in order to do this sorts of thing!");
+                }
+
+                else if (who.HouseUpgradeLevel >= 1)
+                {
+                    Friendship friendship;
+                    who.friendshipData.TryGetValue(__instance.Name, out friendship);
+
+                    Game1.changeMusicTrack("silence");
+                    who.spouse = __instance.Name;
+
+                    {
+                        Game1.Multiplayer.globalChatInfoMessage("Engaged", Game1.player.Name, __instance.GetTokenizedDisplayName());
+                    }
+
+                    //Friendship friendship = who.friendshipData[base.Name];
+                    friendship.Status = FriendshipStatus.Engaged;
+
+                    WorldDate worldDate = new WorldDate(Game1.Date);
+                    worldDate.TotalDays += 3;
+                    while (!Game1.canHaveWeddingOnDay(worldDate.DayOfMonth, worldDate.Season))
+                    {
+                        worldDate.TotalDays++;
+                    }
+
+                    friendship.WeddingDate = worldDate;
+                    __instance.CurrentDialogue.Clear();
+
+                    {
+                        Dialogue dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Data\\EngagementDialogue:" + __instance.Name + "0");
+                        if (dialogue2 != null)
+                        {
+                            __instance.CurrentDialogue.Push(dialogue2);
+                        }
+
+                        dialogue2 = StardewValley.Dialogue.TryGetDialogue(__instance, "Strings\\StringsFromCSFiles:" + __instance.Name + "_Engaged");
+                        if (dialogue2 != null)
+                        {
+                            __instance.CurrentDialogue.Push(dialogue2);
+                        }
+                        else
+                        {
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:NPC.cs.3980"));
+                        }
+                    }
+
+                    Dialogue obj = __instance.CurrentDialogue.Peek();
+                    obj.onFinish = (Action)Delegate.Combine(obj.onFinish, (Action)delegate
+                    {
+                        Game1.changeMusicTrack("none", track_interruptable: true);
+                        GameLocation.HandleMusicChange(null, Game1.player.currentLocation);
+                    });
+                    who.changeFriendship(1, __instance);
+                    who.reduceActiveItemByOne();
+                    who.completelyStopAnimatingOrDoingAction();
+                    Game1.drawDialogue(__instance);
+
+                }
+            }
+            else
+            {
+                SMonitor.Log($"The entity you are to force is not marriagable. You cannot do this!!!");
+
+            }
+
+        }
     }
 }
