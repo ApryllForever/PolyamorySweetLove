@@ -1006,6 +1006,11 @@ namespace PolyamorySweetLove
                         who.changeFriendship(-100, __instance);
                         return false;
                     }
+                    else if (__instance.TryGetDialogue("RejectItem_(O)460") != null)
+                    {
+                        Monitor.Log($"Tried to give pendant to someone with dialogue key RejectItem_(O)460");
+                        return true;
+                    }
                     else
                     {
 
